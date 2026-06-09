@@ -233,12 +233,13 @@ class FloatingBubbleService : Service() {
                 return
             }
 
-            // 启动 Activity 处理翻译和显示（Activity 的窗口管理更稳定）
+            // 启动 Activity 处理翻译和显示
+            // 使用 NEW_TASK 创建独立任务，不加 CLEAR_TOP 避免冲掉主界面
             startActivity(
                 Intent(this, ProcessTextActivity::class.java).apply {
                     putExtra(Intent.EXTRA_PROCESS_TEXT, text)
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    addFlags(Intent.FLAG_ACTIVITY_LAUNCH_ADJACENT)
                 }
             )
         } catch (_: Exception) {
@@ -259,11 +260,14 @@ class FloatingBubbleService : Service() {
             if (!accText.isNullOrBlank()) return accText
         } catch (_: Exception) { /* 忽略 */ }
 
-        // 2) 剪贴板内容
+        // 2) 剪贴板内容 — 遍历所有 clip 项拼接纯文本（链接会将文字拆成多项）
         try {
-            val clip = (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).primaryClip
-            val text = clip?.getItemAt(0)?.text?.toString()?.trim()
-            if (!text.isNullOrBlank()) return text
+            val clip = (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).primaryClip ?: return null
+            val sb = StringBuilder()
+            for (i in 0 until clip.itemCount) {
+                clip.getItemAt(i).text?.toString()?.let { sb.append(it) }
+            }
+            return sb.toString().trim().takeIf { it.isNotBlank() }
         } catch (_: Exception) { /* 忽略 */ }
 
         return null

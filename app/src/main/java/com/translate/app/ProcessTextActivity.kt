@@ -39,7 +39,7 @@ import kotlinx.coroutines.*
  * 工作方式：
  * 1. 接收文本（来自 PROCESS_TEXT 或悬浮球服务）
  * 2. 在 Compose UI 中直接显示加载 → 翻译结果
- * 3. 自动 8 秒后关闭，点击外部区域也可关闭
+ * 3. 用户点击空白处或 ✕ 按钮手动关闭（不会自动消失）
  */
 class ProcessTextActivity : ComponentActivity() {
 
@@ -81,7 +81,9 @@ class ProcessTextActivity : ComponentActivity() {
     }
 
     private fun extractText(intent: Intent?): String? {
-        return intent?.getCharSequenceExtra(Intent.EXTRA_PROCESS_TEXT)?.toString()?.trim()
+        // 使用 coerceToText 风格处理 PROCESS_TEXT（兼容带链接/富文本）
+        val text = intent?.getCharSequenceExtra(Intent.EXTRA_PROCESS_TEXT)?.toString()?.trim()
+        return text
     }
 
     private fun copyToClipboard(text: String) {
@@ -120,9 +122,7 @@ private fun TranslationPopup(
         if (appId.isBlank() || secretKey.isBlank()) {
             errorMsg = "请先打开 App 设置页面配置百度翻译 APP ID 和密钥"
             isLoading = false
-            delay(4000)
-            onDismiss()
-            return@LaunchedEffect
+            return@LaunchedEffect  // ← 不再自动关闭，用户看了手动关
         }
 
         val r = ApiClient.translateRepository.translate(
@@ -133,8 +133,7 @@ private fun TranslationPopup(
         r.onSuccess { t ->
             result = t
             isLoading = false
-            delay(8000)
-            onDismiss()
+            // ⚡ 不再自动关闭，用户看完后点击空白处或 ✕ 按钮手动关闭
         }.onFailure { e ->
             errorMsg = when {
                 e.message?.contains("Unable to resolve host") == true -> "网络连接失败"
@@ -142,8 +141,6 @@ private fun TranslationPopup(
                 else -> "翻译失败：${e.message ?: "未知错误"}"
             }
             isLoading = false
-            delay(5000)
-            onDismiss()
         }
     }
 
