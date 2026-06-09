@@ -25,7 +25,7 @@
 
 ### 下载安装
 
-从 [Releases 页面](https://github.com/YOUR_USERNAME/TranslateApp/releases) 下载最新的 APK 安装包。
+从 [Releases 页面](https://github.com/shenzh21/TranslateApp/releases) 下载最新的 APK 安装包。
 
 ### 获取百度翻译 API 密钥
 
@@ -110,7 +110,7 @@ app/src/main/java/com/translate/app/
 
 ```bash
 # 克隆项目
-git clone https://github.com/YOUR_USERNAME/TranslateApp.git
+git clone https://github.com/shenzh21/TranslateApp.git
 cd TranslateApp
 
 # 使用 Gradle 构建 Debug APK
